@@ -1,6 +1,6 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "LotR Tracker",
+  "name": "LotR Trick-Taking Game Tracker",
   "icons": [
     {
       "src": "favicon.ico",
