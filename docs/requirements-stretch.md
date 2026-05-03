@@ -58,5 +58,14 @@ Optionally record the date a chapter was marked complete, enabling a history/tim
 
 ---
 
+## Online Deployment
+Deploy the app to a public URL so it's accessible from any device without running a local dev server.
+
+- Host on a static/edge platform — good candidates: **Vercel**, **Netlify**, or **Cloudflare Pages** (all have free tiers and support TanStack Start)
+- No backend required — all data stays in the user's browser localStorage
+- A public URL also makes it easy to share with other players in the group
+
+---
+
 ## PWA Support
 Make the app installable as a Progressive Web App so it can be added to a phone's home screen and used offline like a native app. Given the mobile-first, offline-by-design nature of this app, this is a strong candidate to implement shortly after MVP — setup cost is low with `vite-plugin-pwa`.
