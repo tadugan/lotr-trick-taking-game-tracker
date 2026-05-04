@@ -1,6 +1,6 @@
 # LotR Trick-Taking Game Tracker
 
-A mobile-first web app for tracking progress through the Lord of the Rings Trick-Taking Game trilogy by Prospero Hall.
+A mobile-first web app for tracking progress through the Lord of the Rings Trick-Taking Game trilogy.
 
 ## Games Supported
 
