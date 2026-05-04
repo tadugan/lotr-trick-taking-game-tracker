@@ -2,7 +2,8 @@ export type VictoryCondition = 'short' | 'long';
 
 export type Character = {
   name: string;
-  required: boolean;
+  required: boolean;            // * marker: bold/dark chip styling
+  countsForCompletion: boolean; // false for ? marker: checkbox present but won't auto-complete chapter
 };
 
 export type Chapter = {
@@ -22,6 +23,7 @@ export type Game = {
 export type ChapterProgress = {
   chapterNumber: number;
   completed: boolean;
+  characterProgress?: Record<string, boolean>; // only populated for 'long' chapters
 };
 
 export type SaveFile = {

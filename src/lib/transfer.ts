@@ -58,12 +58,14 @@ function isValidSaveFile(v: unknown): v is SaveFile {
     typeof s.createdAt === 'string' &&
     typeof s.updatedAt === 'string' &&
     Array.isArray(s.chapters) &&
-    s.chapters.every(
-      (c) =>
-        c &&
-        typeof c === 'object' &&
-        typeof (c as Record<string, unknown>).chapterNumber === 'number' &&
-        typeof (c as Record<string, unknown>).completed === 'boolean',
-    )
+    s.chapters.every((c) => {
+      if (!c || typeof c !== 'object') return false;
+      const ch = c as Record<string, unknown>;
+      return (
+        typeof ch.chapterNumber === 'number' &&
+        typeof ch.completed === 'boolean' &&
+        (ch.characterProgress === undefined || (typeof ch.characterProgress === 'object' && ch.characterProgress !== null))
+      );
+    })
   );
 }

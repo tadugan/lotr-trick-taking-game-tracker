@@ -26,6 +26,9 @@ export function createSave(
   const chapters: ChapterProgress[] = (game?.chapters ?? []).map((ch) => ({
     chapterNumber: ch.number,
     completed: false,
+    ...(ch.victoryCondition === 'long'
+      ? { characterProgress: Object.fromEntries(ch.characters.map((c) => [c.name, false])) }
+      : {}),
   }));
 
   const now = new Date().toISOString();

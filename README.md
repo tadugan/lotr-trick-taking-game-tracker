@@ -6,8 +6,8 @@ A mobile-first web app for tracking progress through the Lord of the Rings Trick
 
 | Game | Chapters |
 |---|---|
-| The Fellowship of the Ring | 1–18 |
-| The Two Towers | 19–35 |
+| The Fellowship of the Ring | 1–18 (20 chapters) |
+| The Two Towers | 19–36 |
 | The Return of the King | Coming soon |
 
 ## Features
@@ -22,7 +22,6 @@ A mobile-first web app for tracking progress through the Lord of the Rings Trick
 ## Tech Stack
 
 - [React 19](https://react.dev/)
-- [TanStack Start](https://tanstack.com/start) (SSR framework)
 - [TanStack Router](https://tanstack.com/router) (file-based routing)
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [TypeScript](https://www.typescriptlang.org/)

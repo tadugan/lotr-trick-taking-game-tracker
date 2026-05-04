@@ -40,16 +40,30 @@ describe('createSave', () => {
 
   it('creates the correct number of chapters for fotr', () => {
     const save = createSave('fotr', 'Test');
-    expect(save.chapters).toHaveLength(18);
+    expect(save.chapters).toHaveLength(20);
     expect(save.chapters[0].chapterNumber).toBe(1);
-    expect(save.chapters[17].chapterNumber).toBe(18);
+    expect(save.chapters[19].chapterNumber).toBe(18.2);
   });
 
   it('creates the correct number of chapters for tt', () => {
     const save = createSave('tt', 'Test');
-    expect(save.chapters).toHaveLength(17);
+    expect(save.chapters).toHaveLength(18);
     expect(save.chapters[0].chapterNumber).toBe(19);
-    expect(save.chapters[16].chapterNumber).toBe(35);
+    expect(save.chapters[17].chapterNumber).toBe(36);
+  });
+
+  it('initializes characterProgress for long chapters', () => {
+    const save = createSave('fotr', 'Test');
+    const ch9 = save.chapters.find((c) => c.chapterNumber === 9)!;
+    expect(ch9.characterProgress).toBeDefined();
+    expect(ch9.characterProgress!['Glorfindel']).toBe(false);
+    expect(ch9.characterProgress!['Frodo']).toBe(false);
+  });
+
+  it('does not add characterProgress for short chapters', () => {
+    const save = createSave('fotr', 'Test');
+    const ch1 = save.chapters.find((c) => c.chapterNumber === 1)!;
+    expect(ch1.characterProgress).toBeUndefined();
   });
 
   it('creates zero chapters for unreleased rotk', () => {

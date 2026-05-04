@@ -5,7 +5,7 @@ import { getGame } from '../data/games'
 import { getSave } from '../lib/storage'
 import { useSaves } from '../lib/useSaves'
 import { exportSave } from '../lib/transfer'
-import type { SaveFile, Chapter } from '../types'
+import type { SaveFile, Chapter, ChapterProgress } from '../types'
 
 export const Route = createFileRoute('/saves/$id')({
   component: SaveDetail,
@@ -22,7 +22,6 @@ function SaveDetail() {
   const loaded = useRef(false)
   useEffect(() => {
     if (!loaded.current) {
-      // First render after mount — check directly from storage
       if (!getSave(id)) navigate({ to: '/' })
       loaded.current = true
     }
@@ -48,6 +47,25 @@ function SaveDetail() {
       chapters: save!.chapters.map((c) =>
         c.chapterNumber === chapterNumber ? { ...c, completed: !c.completed } : c,
       ),
+    }
+    updateSave(updated)
+  }
+
+  function toggleCharacter(chapterNumber: number, characterName: string) {
+    const chapter = game!.chapters.find((c) => c.number === chapterNumber)!
+    const updated: SaveFile = {
+      ...save!,
+      chapters: save!.chapters.map((c) => {
+        if (c.chapterNumber !== chapterNumber) return c
+        const newCharProg = {
+          ...c.characterProgress,
+          [characterName]: !c.characterProgress?.[characterName],
+        }
+        const allDone = chapter.characters
+          .filter((ch) => ch.countsForCompletion)
+          .every((ch) => newCharProg[ch.name])
+        return { ...c, characterProgress: newCharProg, completed: allDone }
+      }),
     }
     updateSave(updated)
   }
@@ -99,15 +117,14 @@ function SaveDetail() {
       {/* Chapter list */}
       <ul className="mt-6 flex flex-col gap-2">
         {game.chapters.map((chapter) => {
-          const progress = save.chapters.find(
-            (c) => c.chapterNumber === chapter.number,
-          )
+          const progress = save.chapters.find((c) => c.chapterNumber === chapter.number)
           return (
             <li key={chapter.number}>
               <ChapterRow
                 chapter={chapter}
-                completed={progress?.completed ?? false}
+                progress={progress ?? { chapterNumber: chapter.number, completed: false }}
                 onToggle={() => toggleChapter(chapter.number)}
+                onToggleCharacter={(name) => toggleCharacter(chapter.number, name)}
               />
             </li>
           )
@@ -132,7 +149,6 @@ function SaveTitle({
     if (editing) inputRef.current?.select()
   }, [editing])
 
-  // Keep draft in sync if parent name changes (e.g. after save)
   useEffect(() => {
     if (!editing) setDraft(name)
   }, [name, editing])
@@ -179,14 +195,23 @@ function SaveTitle({
 
 function ChapterRow({
   chapter,
-  completed,
+  progress,
   onToggle,
+  onToggleCharacter,
 }: {
   chapter: Chapter
-  completed: boolean
+  progress: ChapterProgress
   onToggle: () => void
+  onToggleCharacter: (name: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const { completed } = progress
+  const isLong = chapter.victoryCondition === 'long'
+
+  const completionChars = chapter.characters.filter((c) => c.countsForCompletion)
+  const doneCount = completionChars.filter(
+    (c) => progress.characterProgress?.[c.name],
+  ).length
 
   return (
     <div
@@ -217,21 +242,23 @@ function ChapterRow({
         {/* Chapter info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span
-              className={`font-medium ${completed ? 'text-green-800' : 'text-gray-900'}`}
-            >
+            <span className={`font-medium ${completed ? 'text-green-800' : 'text-gray-900'}`}>
               {chapter.name}
             </span>
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                chapter.victoryCondition === 'long'
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-gray-100 text-gray-500'
+                isLong ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
               }`}
             >
-              {chapter.victoryCondition === 'long' ? 'Long' : 'Short'}
+              {isLong ? 'Long' : 'Short'}
             </span>
           </div>
+          {/* Progress counter for long chapters */}
+          {isLong && (
+            <p className={`mt-0.5 text-xs ${completed ? 'text-green-600' : 'text-gray-400'}`}>
+              {doneCount} / {completionChars.length} done
+            </p>
+          )}
         </div>
 
         {/* Expand toggle */}
@@ -245,33 +272,74 @@ function ChapterRow({
         </button>
       </div>
 
-      {/* Expandable character list */}
+      {/* Expandable panel */}
       {expanded && (
-        <div
-          className={`border-t px-4 py-3 ${
-            completed ? 'border-green-200' : 'border-gray-100'
-          }`}
-        >
+        <div className={`border-t px-4 py-3 ${completed ? 'border-green-200' : 'border-gray-100'}`}>
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">
             Characters
           </p>
-          <ul className="flex flex-wrap gap-2">
-            {chapter.characters.map((char) => (
-              <li
-                key={char.name}
-                className={`rounded-full px-3 py-1 text-sm ${
-                  char.required
-                    ? 'bg-gray-900 font-medium text-white'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {char.name}
-                {char.required && (
-                  <span className="ml-1 text-xs opacity-70">required</span>
-                )}
-              </li>
-            ))}
-          </ul>
+
+          {isLong ? (
+            // Long chapter: character checkboxes
+            <ul className="flex flex-col gap-1">
+              {chapter.characters.map((char) => {
+                const charDone = progress.characterProgress?.[char.name] ?? false
+                return (
+                  <li key={char.name}>
+                    <button
+                      type="button"
+                      onClick={() => onToggleCharacter(char.name)}
+                      className="flex w-full items-center gap-3 rounded-lg py-1.5 active:bg-gray-50"
+                    >
+                      <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                          charDone
+                            ? 'border-green-500 bg-green-500 text-white'
+                            : 'border-gray-300 bg-white text-transparent'
+                        }`}
+                      >
+                        <Check size={10} strokeWidth={3} />
+                      </div>
+                      <span
+                        className={`flex-1 text-left text-sm ${
+                          charDone ? 'text-gray-400 line-through' : 'text-gray-800'
+                        }`}
+                      >
+                        {char.name}
+                      </span>
+                      {char.required && (
+                        <span className="shrink-0 rounded-full bg-gray-900 px-2 py-0.5 text-xs font-medium text-white">
+                          required
+                        </span>
+                      )}
+                      {!char.countsForCompletion && (
+                        <span className="shrink-0 text-xs text-gray-400">bonus</span>
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            // Short chapter: read-only character chips
+            <ul className="flex flex-wrap gap-2">
+              {chapter.characters.map((char) => (
+                <li
+                  key={char.name}
+                  className={`rounded-full px-3 py-1 text-sm ${
+                    char.required
+                      ? 'bg-gray-900 font-medium text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {char.name}
+                  {char.required && (
+                    <span className="ml-1 text-xs opacity-70">required</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
