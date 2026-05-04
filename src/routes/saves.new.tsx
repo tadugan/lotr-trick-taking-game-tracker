@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { GAMES } from '../data/games'
 import { createSave } from '../lib/storage'
 import type { Game } from '../types'
 
 export const Route = createFileRoute('/saves/new')({
-  head: () => ({ meta: [{ title: 'New Save — LotR Tracker' }] }),
   component: NewSave,
 })
 
@@ -16,6 +15,7 @@ const MAX_PLAYERS = 4
 
 function NewSave() {
   const navigate = useNavigate()
+  useEffect(() => { document.title = 'New Save — LotR Tracker' }, [])
   const [gameId, setGameId] = useState<Game['id'] | ''>('')
   const [name, setName] = useState('')
   const [players, setPlayers] = useState<string[]>([])

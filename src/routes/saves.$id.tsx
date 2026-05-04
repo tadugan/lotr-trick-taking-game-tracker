@@ -8,7 +8,6 @@ import { exportSave } from '../lib/transfer'
 import type { SaveFile, Chapter } from '../types'
 
 export const Route = createFileRoute('/saves/$id')({
-  head: () => ({ meta: [{ title: 'LotR Trick-Taking Tracker' }] }),
   component: SaveDetail,
 })
 
