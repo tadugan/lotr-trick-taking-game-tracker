@@ -193,6 +193,12 @@ function SaveTitle({
   )
 }
 
+function formatChapterNumber(num: number): string {
+  if (num === 16.5) return '16½'
+  if (Number.isInteger(num)) return String(num)
+  return String(num)
+}
+
 function ChapterRow({
   chapter,
   progress,
@@ -241,8 +247,11 @@ function ChapterRow({
 
         {/* Chapter info */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className={`font-medium ${completed ? 'text-green-800' : 'text-gray-900'}`}>
+          <div className="flex items-center justify-between gap-2">
+            <span className={`min-w-0 truncate font-medium ${completed ? 'text-green-800' : 'text-gray-900'}`}>
+              <span className={`mr-1.5 font-normal ${completed ? 'text-green-500' : 'text-gray-400'}`}>
+                {formatChapterNumber(chapter.number)}.
+              </span>
               {chapter.name}
             </span>
             <span
